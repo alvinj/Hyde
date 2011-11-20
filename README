@@ -1,0 +1,48 @@
+Hyde Project README File
+
+INTRODUCTION
+------------
+
+This is the README file for the devdaily.com Hyde project.
+In short, if you're a Mac user, Hyde lets you hide your
+desktop.
+
+Although it's written in Java, Hyde has been customized for
+the Mac, and once it's properly built, it installs just like
+any other Mac application.
+
+
+DEMO
+----
+
+The best way to learn about Hyde is to see a few pictures and
+watch a short video. You can find all those goodies here:
+
+  http://www.devdaily.com/hide-desktop-and-desktop-icons
+
+
+SOUNDS
+------
+
+In addition to the base functionality, you can add sound effects
+to Hyde. Just look in the Hyde Preferences to see how to
+add sound effects to Hyde.
+
+
+BULDING HYDE
+------------
+
+If you have Java and Ant installed, you can build Hyde. Just cd 
+to the build directory, and type "ant". Or, take a look at the
+build.xml file in that directory for more information.
+
+
+MORE INFORMATION
+----------------
+
+Hyde was created by Alvin Alexander of http://www.devdaily.com
+
+Please see the devdaily.com website for more information.
+
+
+

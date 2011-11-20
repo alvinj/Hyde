@@ -1,0 +1,249 @@
+<project name="Hyde" default="create-bundle" basedir="..">
+
+  <!-- properties: basic -->
+  <property name="build.dir" value="build" />
+<!--
+  <property file="${build.dir}/build.xml" />
+-->
+  <property name="jar.dir" value="jar" />
+  <property name="lib.dir" value="lib" />
+  <property name="release.dir" value="release" />
+  <property name="src.dir" value="src" />
+  <property name="classes.dir" value="classes" />
+  <property name="resource.dir" value="resources" />
+
+  <!-- properties: application-specific properties -->
+  <property name="jar-file-name" value="Hyde.jar" />
+  <property name="manifest-file-name" value="Hyde.manifest" />
+  <property name="mac.aboutname" value="Hyde" />
+  
+  <!-- properties: jarbundler properties (mac-only) -->
+  <property name="jarbundler.name" value="${mac.aboutname}" />
+  <property name="jarbundler.shortname" value="${mac.aboutname}" />
+  <property name="jarbundler.signature" value="Alvin Alexander, devdaily.com" />
+  <property name="jarbundler.mainclass" value="com.devdaily.heidi.Hyde" />
+  <property name="jarbundler.icon" value="build/Hyde.icns" />
+  <property name="jarbundler.jvmversion" value="1.5+" />
+  <property name="jarbundler.version" value="0.10" />
+  <property name="jarbundler.infostring" value="DevDaily.com Hyde v1.1, May, 2010" />
+  <property name="jarbundler.build" value="100" />
+  <property name="jarbundler.bundleid" value="com.devdaily.heidi.Hyde" />
+  <property name="jarbundler.apple.laf.useScreenMenuBar" value="true"/>
+  <property name="jarbundler.apple.awt.brushMetal" value="true"/>
+  <property name="jarbundler.apple.awt.showGrowBox" value="true"/>
+  <property name="jarbundler.com.apple.mrj.application.apple.menu.about.name" value="${mac.aboutname}"/>
+  <property name="jarbundler.apple.awt.textantialiasing" value="true"/>
+ 
+  <taskdef resource="proguard/ant/task.properties" classpath="/Users/al/AlsLife/DD/Projects/DesktopShield/build/proguard.jar" />
+  <taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+
+  <path id="class.path">
+    <fileset dir="${lib.dir}">
+      <include name="**/*.jar"/>
+      <include name="**/*.zip"/>
+    </fileset>
+  </path>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+
+  <target name="create-classes-dir" depends="init">
+    <mkdir dir="${classes.dir}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${classes.dir}"/>
+    <!-- remove all the old jars from the jar directory -->
+    <delete>
+      <fileset dir="${jar.dir}">
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+      </fileset>
+    </delete>
+    <!-- remove the old version of the app -->
+    <delete>
+      <fileset dir="${release.dir}">
+        <include name="**/*.app"/>
+      </fileset>
+    </delete>
+  </target>
+
+  <!-- COMPILE -->
+  <!-- compile: compile all our code to the "classes" directory -->
+  <!-- debug is off by default. see http://ant.apache.org/manual/CoreTasks/javac.html -->
+  <target name="compile" depends="clean,create-classes-dir">
+    <javac destdir="${classes.dir}" source="1.5" >
+      <src path="${src.dir}"/>
+      <exclude name="**/_*.java"/>
+      <exclude name="**/Test*.java"/>
+      <classpath refid="class.path"/>
+    </javac>
+  </target>
+
+  <!-- CREATE-JAR -->
+  <target name="create-jar" depends="compile">
+
+    <!-- copy any image/resource files in our src directories to the same "classes" directory -->
+    <copy todir="${classes.dir}">
+      <fileset dir="${src.dir}">
+        <include name="**/*.store"/>
+        <include name="**/*.properties"/>   <!-- this is what i renamed publicKey.store to -->
+        <include name="**/*.aif"/>
+        <include name="**/*.gif"/>
+        <include name="**/*.jpg"/>
+        <include name="**/*.png"/>
+      </fileset>
+    </copy>
+    
+    <!-- create the jar file from our compiled classes and manifest file -->
+    <jar basedir="${classes.dir}" jarfile="${jar.dir}/${jar-file-name}" manifest="${build.dir}/${manifest-file-name}"/>
+    
+    <!-- copy any libraries our application depends on -->
+    <copy todir="${jar.dir}">
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+        <include name="**/*.zip"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- OBFUSCATE -->  
+  <target name="obfuscate" depends="create-jar">
+    <proguard
+            allowaccessmodification="true"
+            usemixedcaseclassnames="false"
+            defaultpackage=""
+            skipnonpubliclibraryclasses="false"
+            printseeds="obfuscateseeds.txt"
+            printusage="obfuscateusage.txt"
+            printmapping="obfuscatemapping.txt">
+            
+      <injar name="${jar.dir}/${jar-file-name}"/>
+      <injar name="${jar.dir}/truexml.jar"/>
+      <injar name="${jar.dir}/truelicense.jar"/>
+      <injar name="${jar.dir}/trueswing.jar"/>
+
+      <libraryjar name="${java.home}/../Classes/classes.jar"/>    <!-- rt.jar on other platforms -->
+      <libraryjar name="${java.home}/../Classes/ui.jar"/>         <!-- ApplicationAdapter and Co. -->
+      <libraryjar name="${java.home}/../Classes/jce.jar"/>        <!-- crypto stuff -->
+      <libraryjar name="${jar.dir}/forms-1.0.7.jar"/>
+      <libraryjar name="${jar.dir}/quaqua.jar"/>
+      <libraryjar name="${jar.dir}/commons-codec-1.4.jar"/>
+
+      <outjar name="${jar.dir}/HydeApp.jar"/>
+
+      <keep name="com.devdaily.heidi.Hyde">
+        <method name="main"/>
+      </keep>
+      
+      <!-- i think i need these b/c this class gets serialized, and i don't want it messed with -->
+      <keep name="com.devdaily.heidi.DCRuntime">
+        <constructor/>
+        <method name="get*"/>
+        <method name="set*"/>
+      </keep>
+      
+
+      <!-- THOUGHT I MIGHT NEED THESE TO GET THRU LICENSING, BUT I DIDN'T NEED THEM FOR 'FTP' PROCESS -->
+      <!-- these can all be deleted when i'm sure i've made it through all this obfuscation stuff -->
+<!--
+      <keep name="com.devdaily.heidi.LicenseController">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+
+      <keep name="com.devdaily.heidi.LicenseableClass">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+
+      <keep name="de.schlichtherle.license.ftp.LicenseManager">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+
+      <keep name="de.schlichtherle.license.LicenseNotary">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+
+      <keep name="de.schlichtherle.util.ObfuscatedString">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+-->
+
+      <!-- END NEW -->
+
+
+      <!-- have to keep this one to get this to work with obfuscation -->
+      <keep name="de.schlichtherle.license.ftp.LicenseParam">
+        <constructor/>
+        <method name="*"/>
+      </keep>
+
+      <!-- these were stated in the docs that i'd have to exclude them -->
+      <keep name="de.schlichtherle.license.LicenseContent">
+        <constructor/>
+        <method name="get*"/>
+        <method name="set*"/>
+      </keep>
+      <keep name="de.schlichtherle.xml.GenericCertificate">
+        <constructor/>
+        <method name="get*"/>
+        <method name="set*"/>
+      </keep>
+    </proguard>
+    
+    <!-- delete the "injars" -->
+    <delete>
+      <fileset dir="${jar.dir}">
+        <include name="${jar-file-name}"/>
+        <include name="truexml.jar"/>
+        <include name="truelicense.jar"/>
+        <include name="trueswing.jar"/>
+      </fileset>
+    </delete>
+    
+  </target>
+
+
+  <!-- BUNDLE -->
+  <!-- mac/jar bundle: create our mac os x bundle based on our jar file, our libraries, and these properties -->
+  <target name="create-bundle" depends="obfuscate">
+    <jarbundler dir="${release.dir}"
+                name="${jarbundler.name}"
+                shortname="${jarbundler.shortname}"
+                signature="${jarbundler.signature}"
+                mainclass="${jarbundler.mainclass}" 
+                icon="${jarbundler.icon}"
+                jvmversion="${jarbundler.jvmversion}"
+                version="${jarbundler.version}"
+                infostring="${jarbundler.infostring}"
+                build="${jarbundler.build}"
+                bundleid="${jarbundler.bundleid}" >
+
+      <jarfileset dir="${jar.dir}">
+        <include name="**/*.jar" />
+        <exclude name="**/CVS" />
+      </jarfileset>
+
+      <javaproperty name="apple.laf.useScreenMenuBar" value="${jarbundler.apple.laf.useScreenMenuBar}"/>
+      <javaproperty name="apple.awt.brushMetal" value="${jarbundler.apple.awt.brushMetal}"/>
+      <javaproperty name="apple.awt.showGrowBox" value="${jarbundler.apple.awt.showGrowBox}"/>
+      <javaproperty name="com.apple.mrj.application.apple.menu.about.name" value="${jarbundler.com.apple.mrj.application.apple.menu.about.name}"/>
+      <javaproperty name="apple.awt.textantialiasing" value="${jarbundler.apple.awt.textantialiasing}"/>
+    </jarbundler>
+  </target>
+
+</project>
+
+
+
+
+
+
+
+
+
