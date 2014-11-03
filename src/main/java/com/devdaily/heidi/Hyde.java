@@ -197,14 +197,14 @@ public class Hyde implements LicenseableClass
    */
   private void dieIfNotRunningOnMacOsX()
   {
-    boolean mrjVersionExists = System.getProperty("mrj.version") != null;
-    boolean osNameExists = System.getProperty("os.name").startsWith("Mac OS");
-    
-    if ( !mrjVersionExists || !osNameExists)
-    {
-      System.err.println("Not running on a Mac OS X system.");
-      System.exit(1);
-    }
+//    boolean mrjVersionExists = System.getProperty("mrj.version") != null;
+//    boolean osNameExists = System.getProperty("os.name").startsWith("Mac OS");
+//    
+//    if ( !mrjVersionExists || !osNameExists)
+//    {
+//      System.err.println("Not running on a Mac OS X system.");
+//      System.exit(1);
+//    }
   }
   
   /**

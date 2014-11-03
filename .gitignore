@@ -1,5 +1,13 @@
-bin
-classes
-jar
+.cache
 .classpath
 .project
+.settings
+*.class
+.DS_Store
+bin/
+target/
+project/target/
+project/boot/
+project/build/
+project/plugins/
+deploy/release/

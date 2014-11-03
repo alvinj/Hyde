@@ -1,0 +1,66 @@
+<project name="Hyde" default="create-bundle" basedir=".">
+
+    <taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="appbundler-1.0.jar" />
+    <property environment="env" />
+
+    <!-- input stuff -->
+    <property name="current.dir" value="." />
+
+    <!--
+    <property name="scala-lib.dir" value="scala-libs" />
+    -->
+
+    <!-- output stuff -->
+    <property name="release.dir" value="release" />
+
+    <!-- CLEAN -->
+    <target name="clean">
+        <echo message="clean task ..." />
+        <!-- just needed for the first-time setup -->
+        <mkdir dir="${release.dir}"/>
+        <!-- remove the old version of the app -->
+        <delete dir="${release.dir}/Hyde.app" />
+    </target>
+
+    <!-- CREATE MAC BUNDLE (new approach in Java7+) -->
+    <!-- SEE http://www.intransitione.com/blog/take-java-to-app-store/ and http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/packagingAppsForMac.html -->
+    <target name="create-bundle" depends="clean">
+        <bundleapp outputdirectory="${release.dir}"
+            name="Hyde"
+            displayname="Hyde"
+            identifier="com.devdaily.heidi.Hyde"
+            shortversion="0.1"
+            icon="Hyde.icns"
+            copyright="Alvin Alexander"
+            applicationCategory="public.app-category.utilities"
+            mainclassname="com/devdaily/heidi/Hyde">
+
+            <runtime dir="${env.JAVA_HOME}" />
+
+            <!-- the only jar file needed when using sbt-assembly -->
+            <classpath file="../target/scala-2.10/Hyde-assembly-1.0.jar" />
+
+            <!-- jvm ram settings -->
+            <option value="-Xms32m"/>
+            <option value="-Xmx128m"/>
+            <option value="-XX:PermSize=20m"/>
+            <option value="-XX:MaxPermSize=20m"/>
+
+            <!-- per http://www.oracle.com/webfolder/technetwork/tutorials/obe/java/gc01/index.html -->
+            <!-- "use cms for desktop ui" -->
+            <option value="-XX:+UseConcMarkSweepGC"/>
+            <option value="-XX:ParallelCMSThreads=2"/>
+
+            <option value="-Xdock:icon=Contents/Resources/lightsaber.icns"/>
+            <option value="-Dapple.laf.useScreenMenuBar=true"/>
+            <option value="-Dcom.apple.macos.use-file-dialog-packages=true"/>
+            <option value="-Dcom.apple.macos.useScreenMenuBar=true"/>
+            <option value="-Dapple.awt.application.name=Hyde"/>
+            <option value="-Dcom.apple.smallTabs=true"/>
+
+        </bundleapp>
+    </target>
+
+</project>
+
+
